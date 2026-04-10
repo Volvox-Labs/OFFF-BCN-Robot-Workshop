@@ -248,6 +248,25 @@
     .emotion-save-row input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 7px;border-radius:3px}
     .emotion-save-row input:focus{outline:none;border-color:var(--accent)}
 
+    /* ── ENVIRONMENT PANEL ──────────────────────────────────── */
+    #env-panel{top:52px;right:12px;width:270px;max-height:calc(100vh - 80px);overflow-y:auto}
+    .env-section{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+    .env-row{display:flex;align-items:center;gap:8px;font-size:10px;font-family:var(--mono);color:var(--text-dim)}
+    .env-row label{width:76px;flex-shrink:0}
+    .env-row input[type="range"]{flex:1}
+    .env-row .mv{width:36px;text-align:right;color:var(--accent);flex-shrink:0}
+    .env-row select{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;outline:none;cursor:pointer}
+    .env-row select:focus{border-color:var(--accent)}
+    .env-row input[type="checkbox"]{accent-color:var(--accent)}
+    .env-color-row{display:flex;align-items:center;gap:8px;font-size:10px;font-family:var(--mono);color:var(--text-dim)}
+    .env-color-row label{width:76px;flex-shrink:0}
+    .color-swatch{width:22px;height:22px;border-radius:3px;border:1px solid var(--border);cursor:pointer;flex-shrink:0}
+    .color-hex{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;outline:none}
+    .color-hex:focus{border-color:var(--accent)}
+    .env-upload-lbl{font-size:10px;font-family:var(--mono);background:var(--bg);border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;border-radius:3px;cursor:pointer;transition:border-color .12s,color .12s;flex:1;text-align:center}
+    .env-upload-lbl:hover{border-color:var(--accent);color:var(--accent)}
+    .env-status{font-size:9px;font-family:var(--mono);color:var(--text-dim);padding-top:2px;min-height:13px}
+
     /* ── PASSWORD GATE ───────────────────────────────────────── */
     #pw-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center}
     #pw-box{background:var(--panel-bg);border:1px solid var(--border);border-radius:8px;padding:36px 40px;display:flex;flex-direction:column;align-items:center;gap:18px;min-width:320px;box-shadow:0 12px 48px rgba(0,0,0,.8)}
@@ -319,6 +338,7 @@
     <button class="btn" id="btn-flow">FLOW</button>
     <button class="btn" id="btn-presets">PRESETS</button>
     <button class="btn" id="btn-pip">PiP</button>
+    <button class="btn" id="btn-env">ENV</button>
     <button class="btn" id="btn-scene-objects">SCENE</button>
     <button class="btn" id="btn-robot2">ROBOT 2</button>
   </div>
@@ -515,6 +535,71 @@
   </div>
 </div>
 
+<!-- ENVIRONMENT PANEL -->
+<div id="env-panel" class="overlay">
+  <div class="ov-hdr">
+    <span>ENVIRONMENT</span>
+    <button class="ov-close" id="env-close">✕</button>
+  </div>
+  <div class="preset-section-hdr">HDRI LIGHTING</div>
+  <div class="env-section">
+    <div class="env-row">
+      <label>PRESET</label>
+      <select id="env-hdri-select">
+        <option value="none">— none —</option>
+      </select>
+    </div>
+    <div class="env-row">
+      <label>UPLOAD .HDR</label>
+      <label class="env-upload-lbl" for="env-hdri-upload">Choose file…</label>
+      <input type="file" id="env-hdri-upload" accept=".hdr" style="display:none">
+    </div>
+    <div class="env-row">
+      <label>SHOW AS BG</label>
+      <input type="checkbox" id="env-show-bg" checked>
+    </div>
+    <div class="env-row">
+      <label>INTENSITY</label>
+      <input type="range" id="env-hdri-intensity" min="0.1" max="3" step="0.05" value="1">
+      <span class="mv" id="env-hdri-intensity-val">1.00</span>
+    </div>
+    <div class="env-status" id="env-status">no HDRI loaded</div>
+  </div>
+  <div class="preset-section-hdr">SOLID BACKGROUND</div>
+  <div class="env-section">
+    <div class="env-color-row">
+      <label>COLOR</label>
+      <div class="color-swatch" id="env-bg-color-swatch"></div>
+      <input type="color" id="env-bg-color-picker" style="display:none">
+      <input type="text" class="color-hex" id="env-bg-color-hex" maxlength="7">
+    </div>
+  </div>
+  <div class="preset-section-hdr">FLOOR</div>
+  <div class="env-section">
+    <div class="env-color-row">
+      <label>COLOR</label>
+      <div class="color-swatch" id="env-floor-color-swatch"></div>
+      <input type="color" id="env-floor-color-picker" style="display:none">
+      <input type="text" class="color-hex" id="env-floor-color-hex" maxlength="7">
+    </div>
+  </div>
+  <div class="preset-section-hdr">ROBOT COLORS</div>
+  <div class="env-section">
+    <div class="env-color-row">
+      <label>PRIMARY</label>
+      <div class="color-swatch" id="env-robot-color-swatch"></div>
+      <input type="color" id="env-robot-color-picker" style="display:none">
+      <input type="text" class="color-hex" id="env-robot-color-hex" maxlength="7">
+    </div>
+    <div class="env-color-row">
+      <label>ACCENT</label>
+      <div class="color-swatch" id="env-accent-color-swatch"></div>
+      <input type="color" id="env-accent-color-picker" style="display:none">
+      <input type="text" class="color-hex" id="env-accent-color-hex" maxlength="7">
+    </div>
+  </div>
+</div>
+
 <!-- CHUNK 6 — SCENE OBJECTS PANEL -->
 <div id="scene-objects-panel" class="overlay">
   <div class="ov-hdr">
@@ -556,6 +641,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
 <script>
 'use strict';
 
@@ -3115,11 +3201,220 @@ document.getElementById('tour-back').addEventListener('click', () => {
 document.getElementById('tour-skip').addEventListener('click', closeTour);
 
 // ════════════════════════════════════════════════════════════════
+// ENVIRONMENT — HDRI / COLORS
+// ════════════════════════════════════════════════════════════════
+
+// Edit this list when you drop new .hdr files into assets/hdri/
+const HDRI_FILES = [
+  { label:'Road',  file:'citrus_orchard_road_puresky_1k.hdr'  },
+  { label:'Sunset',       file:'plains_sunset_1k.hdr'        },
+  { label:'Studio',       file:'ferndale_studio_06_1k.hdr'        },
+
+];
+
+const envState = {
+  hdri:          null,
+  hdriIntensity: 1.0,
+  showHdriBg:    true,
+  bgColor:       '#2c3347',
+  floorColor:    '#1e2840',
+  robotPrimary:  '#1c1c2e',
+  accentColor:   '#00d4ff',
+};
+
+let _hdriEnvMap = null;
+let _hdriRawTex = null;
+let _pmremGen   = null;
+
+function _getPmrem() {
+  if (!_pmremGen) {
+    _pmremGen = new THREE.PMREMGenerator(renderer);
+    _pmremGen.compileEquirectangularShader();
+  }
+  return _pmremGen;
+}
+
+function _applyEnvTex(rawTex) {
+  if (_hdriEnvMap) _hdriEnvMap.dispose();
+  if (_hdriRawTex && _hdriRawTex !== rawTex) _hdriRawTex.dispose();
+  rawTex.mapping = THREE.EquirectangularReflectionMapping;
+  const envMap  = _getPmrem().fromEquirectangular(rawTex).texture;
+  _hdriEnvMap   = envMap;
+  _hdriRawTex   = rawTex;
+  scene.environment = envMap;
+  renderer.toneMappingExposure = envState.hdriIntensity;
+  if (envState.showHdriBg) {
+    scene.background = rawTex;
+    scene.fog        = null;
+  } else {
+    scene.background = new THREE.Color(envState.bgColor);
+    scene.fog        = new THREE.FogExp2(new THREE.Color(envState.bgColor).getHex(), 0.032);
+  }
+}
+
+function applyHDRI(filename) {
+  envState.hdri = filename;
+  if (!filename) { clearHDRI(); return; }
+  new THREE.RGBELoader().load(
+    'assets/hdri/' + filename,
+    tex => {
+      _applyEnvTex(tex);
+      document.getElementById('env-status').textContent = filename + ' — loaded';
+    },
+    undefined,
+    () => {
+      document.getElementById('env-status').textContent = filename + ' — file not found in assets/hdri/';
+      clearHDRI();
+    }
+  );
+}
+
+function clearHDRI() {
+  if (_hdriEnvMap) { _hdriEnvMap.dispose(); _hdriEnvMap = null; }
+  if (_hdriRawTex) { _hdriRawTex.dispose(); _hdriRawTex = null; }
+  scene.environment = null;
+  scene.background  = new THREE.Color(envState.bgColor);
+  scene.fog         = new THREE.FogExp2(new THREE.Color(envState.bgColor).getHex(), 0.032);
+  renderer.toneMappingExposure = 1;
+}
+
+function setFloorColor(hex) {
+  envState.floorColor = hex;
+  floorMesh.material.color.set(hex);
+}
+
+function setRobotPrimaryColor(hex) {
+  envState.robotPrimary = hex;
+  const base = new THREE.Color(hex);
+  // slight per-joint brightness variation to preserve depth
+  const factors = [1.0, 0.88, 0.80, 0.95, 0.85, 0.90];
+  jointMats.forEach((m, i) => {
+    const f = factors[i] || 0.85;
+    m.color.setRGB(base.r * f, base.g * f, base.b * f);
+  });
+  structMat.color.setRGB(base.r * 0.65, base.g * 0.65, base.b * 0.65);
+}
+
+function setAccentColor(hex) {
+  envState.accentColor = hex;
+  const c = new THREE.Color(hex);
+  accentMat.color.set(c);
+  accentMat.emissive.setRGB(c.r * 0.15, c.g * 0.15, c.b * 0.15);
+}
+
+function _wireColorRow(id, initHex, onChange) {
+  const swatch = document.getElementById(id + '-swatch');
+  const picker = document.getElementById(id + '-picker');
+  const hexEl  = document.getElementById(id + '-hex');
+  swatch.style.background = initHex;
+  picker.value = initHex;
+  hexEl.value  = initHex;
+  swatch.addEventListener('click', () => picker.click());
+  picker.addEventListener('input', function() {
+    swatch.style.background = this.value;
+    hexEl.value = this.value;
+    onChange(this.value);
+  });
+  hexEl.addEventListener('change', function() {
+    let v = this.value.trim();
+    if (!v.startsWith('#')) v = '#' + v;
+    swatch.style.background = v;
+    picker.value = v;
+    onChange(v);
+  });
+}
+
+function initEnvPanel() {
+  const isFileProtocol = window.location.protocol === 'file:';
+
+  // Populate HDRI dropdown
+  const sel = document.getElementById('env-hdri-select');
+  if (isFileProtocol) {
+    sel.disabled = true;
+    sel.title = 'Presets require a server — use Upload below';
+    document.getElementById('env-status').textContent = 'presets unavailable on file:// — use Upload';
+  } else {
+    HDRI_FILES.forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h.file;
+      opt.textContent = h.label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => applyHDRI(sel.value === 'none' ? null : sel.value));
+  }
+
+  // File upload
+  document.getElementById('env-hdri-upload').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    new THREE.RGBELoader().load(
+      url,
+      tex => {
+        _applyEnvTex(tex);
+        document.getElementById('env-status').textContent = file.name + ' — loaded';
+        sel.value = 'none';
+      },
+      undefined,
+      () => { document.getElementById('env-status').textContent = 'upload failed — .hdr files only'; }
+    );
+  });
+
+  // Show as BG toggle
+  document.getElementById('env-show-bg').addEventListener('change', function() {
+    envState.showHdriBg = this.checked;
+    if (_hdriRawTex) {
+      scene.background = this.checked ? _hdriRawTex : new THREE.Color(envState.bgColor);
+      scene.fog = this.checked ? null : new THREE.FogExp2(new THREE.Color(envState.bgColor).getHex(), 0.032);
+    }
+  });
+
+  // HDRI intensity
+  document.getElementById('env-hdri-intensity').addEventListener('input', function() {
+    const v = parseFloat(this.value);
+    envState.hdriIntensity = v;
+    renderer.toneMappingExposure = v;
+    document.getElementById('env-hdri-intensity-val').textContent = v.toFixed(2);
+  });
+
+  // Color rows
+  _wireColorRow('env-bg-color',    envState.bgColor,     hex => {
+    envState.bgColor = hex;
+    if (!_hdriRawTex || !envState.showHdriBg) {
+      scene.background = new THREE.Color(hex);
+      scene.fog = new THREE.FogExp2(new THREE.Color(hex).getHex(), 0.032);
+    }
+  });
+  _wireColorRow('env-floor-color', envState.floorColor,  setFloorColor);
+  _wireColorRow('env-robot-color', envState.robotPrimary, setRobotPrimaryColor);
+  _wireColorRow('env-accent-color',envState.accentColor,  setAccentColor);
+}
+
+// Open / close
+document.getElementById('btn-env').addEventListener('click', () => {
+  const panel = document.getElementById('env-panel');
+  const open  = panel.style.display === 'flex';
+  panel.style.display = open ? 'none' : 'flex';
+  document.getElementById('btn-env').classList.toggle('active', !open);
+});
+document.getElementById('env-close').addEventListener('click', () => {
+  document.getElementById('env-panel').style.display = 'none';
+  document.getElementById('btn-env').classList.remove('active');
+});
+// Add env panel to the existing Escape handler
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const ep = document.getElementById('env-panel');
+  if (ep.style.display === 'flex') { ep.style.display = 'none'; document.getElementById('btn-env').classList.remove('active'); }
+}, true);
+
+// ════════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════════
 buildRobot();
 buildJointPanel();
 _initSoSelRing();
+initEnvPanel();
 loadUserEmotions();
 buildEmotionsPanel();
 buildBuiltinPresets();
