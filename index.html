@@ -247,9 +247,59 @@
     .emotion-save-row{display:flex;gap:6px;padding:8px 10px 2px}
     .emotion-save-row input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 7px;border-radius:3px}
     .emotion-save-row input:focus{outline:none;border-color:var(--accent)}
+
+    /* ── PASSWORD GATE ───────────────────────────────────────── */
+    #pw-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+    #pw-box{background:var(--panel-bg);border:1px solid var(--border);border-radius:8px;padding:36px 40px;display:flex;flex-direction:column;align-items:center;gap:18px;min-width:320px;box-shadow:0 12px 48px rgba(0,0,0,.8)}
+    #pw-logo{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--accent);font-weight:500}
+    #pw-title{font-size:14px;font-weight:600;color:var(--text)}
+    #pw-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 14px;border-radius:4px;outline:none;text-align:center;letter-spacing:.08em}
+    #pw-input:focus{border-color:var(--accent)}
+    #pw-input.pw-error{border-color:var(--error);animation:pw-shake .3s}
+    #pw-err{font-size:11px;font-family:var(--mono);color:var(--error);min-height:16px}
+    #pw-submit{width:100%;padding:9px;font-size:12px;font-family:var(--mono);letter-spacing:.1em;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);border-radius:4px;cursor:pointer;transition:background .15s}
+    #pw-submit:hover{background:rgba(0,212,255,.3)}
+    @keyframes pw-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
   </style>
 </head>
 <body>
+
+<!-- PASSWORD GATE -->
+<div id="pw-gate">
+  <div id="pw-box">
+    <div id="pw-logo">VOLVOX LABS</div>
+    <div id="pw-title">Robot Previz — Workshop</div>
+    <input id="pw-input" type="password" placeholder="enter password" autocomplete="off">
+    <div id="pw-err"></div>
+    <button id="pw-submit">ENTER</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const PW = 'offf2025';
+  const KEY = 'vvx_pw_ok';
+  const gate = document.getElementById('pw-gate');
+  if(localStorage.getItem(KEY)==='1'){gate.style.display='none';return;}
+  const input = document.getElementById('pw-input');
+  const err   = document.getElementById('pw-err');
+  function attempt(){
+    if(input.value===PW){
+      localStorage.setItem(KEY,'1');
+      gate.style.display='none';
+    } else {
+      err.textContent='incorrect password';
+      input.classList.add('pw-error');
+      input.value='';
+      setTimeout(()=>{input.classList.remove('pw-error');err.textContent='';},600);
+    }
+  }
+  document.getElementById('pw-submit').addEventListener('click',attempt);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')attempt();});
+  input.focus();
+})();
+</script>
+
 <div id="app">
 
   <!-- TOP BAR -->
