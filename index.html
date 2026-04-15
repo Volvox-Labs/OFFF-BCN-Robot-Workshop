@@ -417,17 +417,6 @@
           <div id="robot2-joint-sliders"></div>
         </div>
 
-        <!-- CHUNK 11 — Scene Presets -->
-        <div id="scene-presets-section" style="border-top:1px solid var(--border);flex-shrink:0;padding-bottom:8px">
-          <div class="panel-hdr" id="scene-presets-hdr">SCENE PRESETS</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:8px 10px">
-            <button class="scene-preset-btn" data-preset="orbTracker">Orb Tracker</button>
-            <button class="scene-preset-btn" data-preset="mirrorGallery">Mirror Gallery</button>
-            <button class="scene-preset-btn" data-preset="crystalRave">Crystal Rave</button>
-            <button class="scene-preset-btn" data-preset="spotlightSolo">Spotlight Solo</button>
-          </div>
-        </div>
-
         <!-- CHUNK 5 — Laser / Light -->
         <div id="laser-section">
           <div class="panel-hdr">LASER / LIGHT</div>
@@ -580,7 +569,14 @@
     <span>PRESETS</span>
     <button class="ov-close" id="presets-close">✕</button>
   </div>
-  <div class="preset-section-hdr">BUILT-IN</div>
+  <div class="preset-section-hdr">SCENE PRESETS</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:8px 12px 4px">
+    <button class="scene-preset-btn" data-preset="orbTracker">Orb Tracker</button>
+    <button class="scene-preset-btn" data-preset="mirrorGallery">Mirror Gallery</button>
+    <button class="scene-preset-btn" data-preset="crystalRave">Crystal Rave</button>
+    <button class="scene-preset-btn" data-preset="spotlightSolo">Spotlight Solo</button>
+  </div>
+  <div class="preset-section-hdr">ROBOT + SCREEN</div>
   <div id="preset-builtin-list"></div>
   <div class="preset-section-hdr">
     <span>USER PRESETS</span>
@@ -2824,7 +2820,12 @@ const SCENE_PRESETS = {
 
 // CHUNK 11 — preset button listeners
 document.querySelectorAll('.scene-preset-btn').forEach(btn =>
-  btn.addEventListener('click', () => loadScenePreset(btn.dataset.preset)));
+  btn.addEventListener('click', () => {
+    loadScenePreset(btn.dataset.preset);
+    document.getElementById('presets-panel').style.display = 'none';
+    document.getElementById('btn-presets').classList.remove('active');
+    state.presetsOpen = false;
+  }));
 
 // ════════════════════════════════════════════════════════════════
 // CHUNK 5 — LASER / LIGHT ATTACHED TO ROBOT
@@ -4191,19 +4192,15 @@ function _encodeGIF() {
             img.src = url;
           });
         }
-        renderState.frames.forEach(blob => {
-          _blobToCanvas(blob).then(canvas => {
-            gif.addFrame(canvas, { delay, copy: true });
-            loaded++;
-            if (loaded === renderState.frames.length) {
-              gif.on('finished', b => {
-                URL.revokeObjectURL(workerScript); // clean up worker blob URL
-                _triggerDownload(b, 'robot-previz.gif');
-                _postRenderCleanup();
-              });
-              gif.render();
-            }
+        // Convert all blobs to canvases in order, then add frames sequentially
+        Promise.all(renderState.frames.map(_blobToCanvas)).then(canvases => {
+          canvases.forEach(canvas => gif.addFrame(canvas, { delay, copy: true }));
+          gif.on('finished', b => {
+            URL.revokeObjectURL(workerScript);
+            _triggerDownload(b, 'robot-previz.gif');
+            _postRenderCleanup();
           });
+          gif.render();
         });
       })
       .catch(() => {
