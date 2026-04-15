@@ -542,6 +542,7 @@
           <button data-type="triangle">▲  Triangle</button>
           <button data-type="line">╱  Line</button>
           <button data-type="cube">◻  Cube (3D)</button>
+          <button data-type="particles">⬡  Particles</button>
         </div>
       </div>
       <div id="ce-layer-list"></div>
@@ -784,7 +785,7 @@ const MAPPABLE_3D = [
   { id:'emissive', label:'Glow',      defMin:0,     defMax:1    },
 ];
 
-const SHAPE_ICONS = { circle:'○', rect:'■', triangle:'▲', line:'╱', cube:'◻' };
+const SHAPE_ICONS = { circle:'○', rect:'■', triangle:'▲', line:'╱', cube:'◻', particles:'⬡' };
 
 // ════════════════════════════════════════════════════════════════
 // STATE
@@ -1109,6 +1110,70 @@ function resolveBgProps() {
   return { h, s, l };
 }
 
+// ── PARTICLE SYSTEM helpers ───────────────────────────────────────
+function _initParticles(shape, W, H) {
+  shape._particles = [];
+  for (let i = 0; i < shape.count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const spd   = (0.4 + Math.random() * 0.6) * shape.speed;
+    shape._particles.push({
+      x:  Math.random() * W,
+      y:  Math.random() * H,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd,
+      rot: Math.random() * 360,
+      rotV: (Math.random() - 0.5) * 1.2,  // spin speed deg/frame
+      hueOff: (Math.random() - 0.5) * 40, // per-particle hue variance
+    });
+  }
+  shape._lastParticleTime = performance.now();
+}
+
+function _tickParticles(shape, W, H) {
+  const now = performance.now();
+  const dt  = Math.min((now - (shape._lastParticleTime || now)) / 16.67, 4); // frames elapsed, capped
+  shape._lastParticleTime = now;
+  const r = shape.size * W * 0.5;
+  for (const p of shape._particles) {
+    p.x  += p.vx * dt * shape.speed * 3;
+    p.y  += p.vy * dt * shape.speed * 3;
+    p.rot += p.rotV * dt;
+    // bounce off walls with radius padding
+    if (p.x - r < 0)  { p.x  = r;     p.vx = Math.abs(p.vx); }
+    if (p.x + r > W)  { p.x  = W - r; p.vx = -Math.abs(p.vx); }
+    if (p.y - r < 0)  { p.y  = r;     p.vy = Math.abs(p.vy); }
+    if (p.y + r > H)  { p.y  = H - r; p.vy = -Math.abs(p.vy); }
+  }
+}
+
+function _drawPolygon(ctx, x, y, r, sides, rotDeg) {
+  ctx.beginPath();
+  for (let i = 0; i < sides; i++) {
+    const a = (i / sides) * Math.PI * 2 + rotDeg * DEG_TO_RAD;
+    const px = x + Math.cos(a) * r;
+    const py = y + Math.sin(a) * r;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+function _resolveParticleProps(shape) {
+  let h = shape.color.h, s = shape.color.s, l = shape.color.l;
+  let size = shape.size, speed = shape.speed, opacity = shape.opacity;
+  for (const m of shape.mappings) {
+    const v = computeMappedVal(m);
+    switch (m.property) {
+      case 'color.h': h = v; break;
+      case 'color.s': s = v; break;
+      case 'color.l': l = v; break;
+      case 'size':    size = v; break;
+      case 'speed':   speed = v; break;
+      case 'opacity': opacity = v; break;
+    }
+  }
+  return { h, s, l, size, speed, opacity };
+}
+
 function renderScreenCanvas() {
   if (!screenCtx) return;
   const W=1280, H=720;
@@ -1117,6 +1182,24 @@ function renderScreenCanvas() {
   screenCtx.fillRect(0, 0, W, H);
   for (const shape of state.screenContent.shapes) {
     if (shape.layerType === 'cube') continue;
+    if (shape.layerType === 'particles') {
+      const p = _resolveParticleProps(shape);
+      // lazily init or reinit if count changed
+      if (!shape._particles || shape._particles.length !== shape.count) _initParticles(shape, W, H);
+      // sync speed changes without reinit
+      shape._resolvedSpeed = p.speed;
+      _tickParticles(shape, W, H);
+      const r = p.size * W * 0.5;
+      screenCtx.save();
+      screenCtx.globalAlpha = Math.max(0, Math.min(1, p.opacity));
+      for (const pt of shape._particles) {
+        screenCtx.fillStyle = `hsl(${(p.h + pt.hueOff + 360) % 360},${p.s}%,${p.l}%)`;
+        _drawPolygon(screenCtx, pt.x, pt.y, r, shape.sides, pt.rot);
+        screenCtx.fill();
+      }
+      screenCtx.restore();
+      continue;
+    }
     const p = resolveShapeProps(shape);
     drawShapeOnCtx(screenCtx, W, H, shape.type, p);
   }
@@ -1294,6 +1377,36 @@ function refreshPropsPane() {
   const shape = state.screenContent.shapes.find(s=>s.id===id);
   if (!shape) return;
 
+  if (shape.layerType === 'particles') {
+    const MAPPABLE_PARTICLES = [
+      { id:'color.h', label:'Hue',     defMin:0,   defMax:360 },
+      { id:'color.s', label:'Sat',     defMin:0,   defMax:100 },
+      { id:'color.l', label:'Lgt',     defMin:5,   defMax:90  },
+      { id:'size',    label:'Size',    defMin:0.01,defMax:0.12 },
+      { id:'speed',   label:'Speed',   defMin:0,   defMax:2   },
+      { id:'opacity', label:'Opacity', defMin:0,   defMax:1   },
+    ];
+    pane.appendChild(_makePropsSection('COLOR', [
+      { label:'Hue', prop:'color.h', min:0, max:360, val:shape.color.h },
+      { label:'Sat', prop:'color.s', min:0, max:100, val:shape.color.s },
+      { label:'Lgt', prop:'color.l', min:0, max:100, val:shape.color.l },
+    ], (prop, val) => { shape.color[prop.slice(6)] = val; }));
+    pane.appendChild(_makePropsSection('BEHAVIOUR', [
+      { label:'Count', prop:'count', min:1,    max:120,  val:shape.count,  step:1    },
+      { label:'Sides', prop:'sides', min:3,    max:10,   val:shape.sides,  step:1    },
+      { label:'Size',  prop:'size',  min:0.01, max:0.12, val:shape.size,   step:0.01 },
+      { label:'Speed', prop:'speed', min:0,    max:2,    val:shape.speed,  step:0.01 },
+      { label:'Alpha', prop:'opacity',min:0,   max:1,    val:shape.opacity,step:0.01 },
+    ], (prop, val) => {
+      const prev = shape.count;
+      shape[prop] = val;
+      // reinit particles when count or sides change
+      if ((prop === 'count' || prop === 'sides') && shape._particles) shape._particles = null;
+    }));
+    pane.appendChild(_makeMappingsSection(shape.mappings, MAPPABLE_PARTICLES));
+    return;
+  }
+
   if (shape.layerType === 'cube') {
     pane.appendChild(_makePropsSection('COLOR', [
       { label:'Hue', prop:'color.h', min:0,   max:360, val:shape.color.h },
@@ -1421,6 +1534,14 @@ function addShape(type) {
       pos:[0, 0, 0.05], rot:[0,0,0], scale:0.15,
       wireframe:false, emissive:0.1,
       mappings:[],
+    });
+  } else if (type === 'particles') {
+    state.screenContent.shapes.push({
+      id:uid(), type:'particles', layerType:'particles', label,
+      color:{ h:200, s:80, l:60 },
+      count:30, sides:6, size:0.04, speed:0.4, opacity:0.85,
+      mappings:[],
+      // _particles is runtime-only, not serialized
     });
   } else {
     state.screenContent.shapes.push({
@@ -1646,6 +1767,8 @@ function snapshotScreen() {
     if (sh.layerType === 'cube') {
       Object.assign(snap, { px:sh.pos[0], py:sh.pos[1], pz:sh.pos[2],
         rx:sh.rot[0], ry:sh.rot[1], rz:sh.rot[2], scale:sh.scale, emissive:sh.emissive });
+    } else if (sh.layerType === 'particles') {
+      Object.assign(snap, { size:sh.size, speed:sh.speed, opacity:sh.opacity });
     } else {
       Object.assign(snap, { size:sh.size, x:sh.x, y:sh.y, opacity:sh.opacity, rotation:sh.rotation });
     }
@@ -1667,6 +1790,8 @@ function applyScreenSnap(snap) {
       sh.pos[0]=ss.px; sh.pos[1]=ss.py; sh.pos[2]=ss.pz;
       sh.rot[0]=ss.rx; sh.rot[1]=ss.ry; sh.rot[2]=ss.rz;
       sh.scale=ss.scale; sh.emissive=ss.emissive;
+    } else if (sh.layerType === 'particles') {
+      sh.size=ss.size; sh.speed=ss.speed; sh.opacity=ss.opacity;
     } else {
       sh.size=ss.size; sh.x=ss.x; sh.y=ss.y; sh.opacity=ss.opacity; sh.rotation=ss.rotation;
     }
