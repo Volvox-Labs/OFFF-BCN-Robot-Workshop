@@ -2845,12 +2845,18 @@ let laserGroup      = null;  // parented to jointGroups[5]
 let laserBeamMesh   = null;
 let laserSpotLight  = null;
 let laserSpotHelper = null;
+let laserBodyMeshes = [];   // CHUNK 9 — visible housing shapes
 
 function _laserColor() {
   return new THREE.Color().setHSL(laserState.hue / 360, 1.0, 0.55);
 }
 
 function _clearLaser() {
+  laserBodyMeshes.forEach(m => {
+    if (m.parent) m.parent.remove(m);
+    m.geometry.dispose(); m.material.dispose();
+  });
+  laserBodyMeshes = [];
   if (laserBeamMesh) {
     if (laserBeamMesh.parent) laserBeamMesh.parent.remove(laserBeamMesh);
     laserBeamMesh.geometry.dispose(); laserBeamMesh.material.dispose();
@@ -2867,6 +2873,15 @@ function _clearLaser() {
     if (laserSpotHelper.dispose) laserSpotHelper.dispose();
     laserSpotHelper = null;
   }
+}
+
+function _addLaserBody(geo, color, opts) {
+  const mat = new THREE.MeshStandardMaterial({ color, roughness:0.35, metalness:0.7, ...opts });
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = true;
+  laserGroup.add(m);
+  laserBodyMeshes.push(m);
+  return m;
 }
 
 function buildLaserLight() {
@@ -2895,6 +2910,13 @@ function buildLaserLight() {
   const norm = laserState.intensity / 100;
 
   if (laserState.mode === 'laser') {
+    // Housing: small barrel + emitter lens
+    const barrel = _addLaserBody(new THREE.CylinderGeometry(0.018, 0.014, 0.06, 12), 0x222233);
+    barrel.position.y = 0.03;
+    const lens = _addLaserBody(new THREE.CylinderGeometry(0.008, 0.008, 0.012, 10), 0x111122,
+      { color: new THREE.Color().setHSL(laserState.hue/360, 1.0, 0.4), emissive: col, emissiveIntensity: 0.8 });
+    lens.position.y = 0.066;
+    // Beam
     const geo = new THREE.CylinderGeometry(0.004, 0.002, laserState.length, 8);
     geo.translate(0, laserState.length / 2, 0);
     laserBeamMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
@@ -2905,6 +2927,28 @@ function buildLaserLight() {
   } else if (laserState.mode === 'spot' || laserState.mode === 'projector') {
     const isProj   = laserState.mode === 'projector';
     const lightCol = new THREE.Color().setHSL(laserState.hue / 360, 1.0, 0.75);
+
+    if (isProj) {
+      // Projector housing: boxy body + lens ring
+      const body = _addLaserBody(new THREE.BoxGeometry(0.06, 0.05, 0.07), 0x1a1a2a);
+      body.position.y = 0.04;
+      const lensRing = _addLaserBody(new THREE.CylinderGeometry(0.022, 0.022, 0.018, 16), 0x333344);
+      lensRing.position.y = 0.075; lensRing.rotation.x = Math.PI / 2;
+      const lensGlass = _addLaserBody(new THREE.CircleGeometry(0.018, 16), 0x88aaff,
+        { transparent:true, opacity:0.6, roughness:0.0, metalness:0.1,
+          emissive: lightCol, emissiveIntensity: norm * 0.5 });
+      lensGlass.position.y = 0.085; lensGlass.rotation.x = Math.PI / 2;
+    } else {
+      // Spotlight housing: cone-shaped can
+      const can = _addLaserBody(new THREE.CylinderGeometry(0.012, 0.025, 0.055, 12), 0x2a2a3a);
+      can.position.y = 0.03;
+      const rim = _addLaserBody(new THREE.TorusGeometry(0.025, 0.004, 6, 16), 0x444455);
+      rim.position.y = 0.056;
+      const bulb = _addLaserBody(new THREE.SphereGeometry(0.01, 8, 6), 0xffffcc,
+        { emissive: lightCol, emissiveIntensity: norm, roughness:0.1, metalness:0.0 });
+      bulb.position.y = 0.022;
+    }
+
     laserSpotLight           = new THREE.SpotLight(lightCol, norm * (isProj ? 8 : 4));
     laserSpotLight.angle     = (isProj ? laserState.projAngle    : laserState.angle)    * DEG_TO_RAD;
     laserSpotLight.penumbra  =  isProj ? laserState.projPenumbra : laserState.penumbra;
@@ -3002,13 +3046,12 @@ function updateLaserFrame(ts) {
     const noise = (Math.sin(ts * 0.023) * 0.5 + Math.sin(ts * 0.059) * 0.5) * laserState.flicker * 0.45;
     laserBeamMesh.material.opacity = Math.max(0, Math.min(1, base + noise));
   }
-  // CHUNK 9 — projector strobe
+  // CHUNK 9 — projector strobe (no helper.update() here — only intensity changes, not cone geometry)
   if (laserState.mode === 'projector' && laserSpotLight && laserState.strobe) {
     const period = 60 / laserState.strobeBPM;
     const phase  = (ts * 0.001) % period;
     const on     = phase < period * 0.5;
     laserSpotLight.intensity = on ? (laserState.intensity / 100) * 8 : 0;
-    if (laserSpotHelper) laserSpotHelper.update();
   }
 }
 
