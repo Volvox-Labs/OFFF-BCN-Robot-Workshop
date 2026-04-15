@@ -212,6 +212,23 @@
     .laser-mode-row{display:flex;gap:4px;padding:6px 10px}
     .laser-mode-btn{flex:1;padding:4px 4px;font-size:9px;font-family:var(--mono);background:var(--bg);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;border-radius:3px;transition:all .12s;letter-spacing:.06em}
     .laser-mode-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+    /* ── CHUNK 12 — RENDER MODAL ────────────────────────────────── */
+    .render-opt-btn{flex:1;padding:5px 4px;font-size:9px;font-family:var(--mono);background:var(--bg);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;border-radius:3px;transition:all .12s;letter-spacing:.06em}
+    .render-opt-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+    .render-section-label{font-size:9px;font-family:var(--mono);letter-spacing:.1em;color:var(--text-dim);margin-bottom:6px}
+    .render-row{display:flex;gap:5px;margin-bottom:10px}
+    .render-info-line{font-size:9px;font-family:var(--mono);color:var(--text-dim);text-align:center;padding:6px 0}
+
+    /* ── CHUNK 11 — SCENE PRESETS ───────────────────────────────── */
+    .scene-preset-btn{background:var(--bg);border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:9px;padding:7px 4px;border-radius:3px;cursor:pointer;text-align:center;transition:all .12s;letter-spacing:.06em}
+    .scene-preset-btn:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+    #scene-presets-hdr{cursor:default}
+
+    /* ── CHUNK 9 — LIGHT ATTACHMENT + PROJECTOR ─────────────────── */
+    #light-attach-row{display:flex;gap:4px;padding:4px 10px 6px}
+    .light-attach-btn{flex:1;padding:4px 4px;font-size:9px;font-family:var(--mono);background:var(--bg);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;border-radius:3px;transition:all .12s;letter-spacing:.06em}
+    .light-attach-btn.active{background:rgba(255,149,0,.15);border-color:var(--amber);color:var(--amber)}
+    #light-free-controls{border-top:1px dashed rgba(255,149,0,.25);padding-top:6px;display:flex;flex-direction:column;gap:0}
 
     /* ── CHUNK 6 — SCENE OBJECTS PANEL ─────────────────────────── */
     #scene-objects-panel{top:52px;right:12px;width:280px;max-height:calc(100vh - 80px);overflow-y:auto}
@@ -341,6 +358,7 @@
     <button class="btn" id="btn-env">ENV</button>
     <button class="btn" id="btn-scene-objects">SCENE</button>
     <button class="btn" id="btn-robot2">ROBOT 2</button>
+    <button class="btn btn-amber" id="btn-render">RENDER</button>
   </div>
 
   <!-- MAIN -->
@@ -399,6 +417,17 @@
           <div id="robot2-joint-sliders"></div>
         </div>
 
+        <!-- CHUNK 11 — Scene Presets -->
+        <div id="scene-presets-section" style="border-top:1px solid var(--border);flex-shrink:0;padding-bottom:8px">
+          <div class="panel-hdr" id="scene-presets-hdr">SCENE PRESETS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:8px 10px">
+            <button class="scene-preset-btn" data-preset="orbTracker">Orb Tracker</button>
+            <button class="scene-preset-btn" data-preset="mirrorGallery">Mirror Gallery</button>
+            <button class="scene-preset-btn" data-preset="crystalRave">Crystal Rave</button>
+            <button class="scene-preset-btn" data-preset="spotlightSolo">Spotlight Solo</button>
+          </div>
+        </div>
+
         <!-- CHUNK 5 — Laser / Light -->
         <div id="laser-section">
           <div class="panel-hdr">LASER / LIGHT</div>
@@ -406,14 +435,34 @@
             <button class="laser-mode-btn active" data-lmode="none">NONE</button>
             <button class="laser-mode-btn" data-lmode="laser">LASER</button>
             <button class="laser-mode-btn" data-lmode="spot">SPOT</button>
+            <button class="laser-mode-btn" data-lmode="projector">PROJ</button>
+          </div>
+          <div id="light-attach-row" style="display:none">
+            <button class="light-attach-btn active" data-att="robot">ROBOT</button>
+            <button class="light-attach-btn" data-att="free">FREE FLOAT</button>
           </div>
           <div id="laser-controls" style="display:none" class="scr-ctrl">
+            <div id="light-free-controls" style="display:none" class="scr-ctrl">
+              <div class="mini-row"><label>X</label><input type="range" id="light-fx" min="-4" max="4" step="0.05" value="0"><span class="mv" id="light-fx-val">0.00</span></div>
+              <div class="mini-row"><label>Y</label><input type="range" id="light-fy" min="0.1" max="5" step="0.05" value="1.5"><span class="mv" id="light-fy-val">1.50</span></div>
+              <div class="mini-row"><label>Z</label><input type="range" id="light-fz" min="-4" max="4" step="0.05" value="0"><span class="mv" id="light-fz-val">0.00</span></div>
+              <div class="mini-row"><label>PTCH</label><input type="range" id="light-fpitch" min="-90" max="90" step="1" value="-60"><span class="mv" id="light-fpitch-val">-60°</span></div>
+              <div class="mini-row"><label>YAW</label><input type="range" id="light-fyaw" min="-180" max="180" step="1" value="0"><span class="mv" id="light-fyaw-val">0°</span></div>
+            </div>
             <div class="mini-row"><label>HUE</label><input type="range" id="laser-hue" min="0" max="360" step="1" value="0"><span class="mv" id="laser-hue-val">0°</span></div>
             <div class="mini-row"><label>INT</label><input type="range" id="laser-int" min="0" max="100" step="1" value="70"><span class="mv" id="laser-int-val">70</span></div>
             <div class="mini-row" id="laser-len-row"><label>LEN</label><input type="range" id="laser-len" min="0.1" max="3" step="0.05" value="0.8"><span class="mv" id="laser-len-val">0.80m</span></div>
             <div class="mini-row" id="laser-flicker-row"><label>FLKR</label><input type="range" id="laser-flicker" min="0" max="1" step="0.05" value="0"><span class="mv" id="laser-flicker-val">0.00</span></div>
             <div class="mini-row" id="spot-angle-row" style="display:none"><label>ANG</label><input type="range" id="spot-angle" min="2" max="45" step="1" value="18"><span class="mv" id="spot-angle-val">18°</span></div>
             <div class="mini-row" id="spot-pen-row" style="display:none"><label>PEN</label><input type="range" id="spot-pen" min="0" max="1" step="0.05" value="0.3"><span class="mv" id="spot-pen-val">0.30</span></div>
+            <div class="mini-row" id="proj-angle-row" style="display:none"><label>ANG</label><input type="range" id="proj-angle" min="5" max="60" step="1" value="25"><span class="mv" id="proj-angle-val">25°</span></div>
+            <div class="mini-row" id="proj-pen-row" style="display:none"><label>PEN</label><input type="range" id="proj-pen" min="0" max="1" step="0.05" value="0.5"><span class="mv" id="proj-pen-val">0.50</span></div>
+            <div class="mini-row" id="proj-strobe-row" style="display:none">
+              <label>STRB</label>
+              <button id="proj-strobe-btn" class="light-attach-btn" style="flex:0 0 auto;padding:2px 8px">OFF</button>
+              <input type="range" id="proj-bpm" min="30" max="300" step="5" value="120" style="flex:1">
+              <span class="mv" id="proj-bpm-val">120</span>
+            </div>
           </div>
         </div>
 
@@ -430,6 +479,9 @@
                 <option value="flag">Flag</option>
                 <option value="claw">Claw / Gripper</option>
                 <option value="orb">Glowing Orb</option>
+                <option value="fan">Fan</option>
+                <option value="balloon">Balloon</option>
+                <option value="paddle">Cricket Paddle</option>
               </select>
             </div>
             <div id="prop-offset-controls" style="display:none">
@@ -437,6 +489,11 @@
               <div class="mini-row"><label>OY</label><input type="range" id="prop-oy" min="-0.1" max="0.3" step="0.005" value="0.09"><span class="mv" id="prop-oy-val">0.090</span></div>
               <div class="mini-row"><label>OZ</label><input type="range" id="prop-oz" min="-0.2" max="0.2" step="0.005" value="0"><span class="mv" id="prop-oz-val">0.000</span></div>
               <div class="mini-row"><label>ROT</label><input type="range" id="prop-rot" min="-180" max="180" step="1" value="0"><span class="mv" id="prop-rot-val">0°</span></div>
+              <!-- CHUNK 10 — prop-specific controls -->
+              <div class="mini-row" id="fan-spread-row" style="display:none"><label>SPRD</label><input type="range" id="fan-spread" min="0" max="180" step="1" value="120"><span class="mv" id="fan-spread-val">120°</span></div>
+              <div class="mini-row" id="balloon-inflate-row" style="display:none"><label>INFL</label><input type="range" id="balloon-inflate" min="0.3" max="1.5" step="0.05" value="1.0"><span class="mv" id="balloon-inflate-val">1.0×</span></div>
+              <div class="mini-row" id="paddle-face-row" style="display:none"><label>FACE</label><input type="range" id="paddle-face" min="0.5" max="2.0" step="0.05" value="1.0"><span class="mv" id="paddle-face-val">1.0×</span></div>
+              <div class="mini-row" id="paddle-handle-row" style="display:none"><label>HNDL</label><input type="range" id="paddle-handle" min="0.5" max="2.0" step="0.05" value="1.0"><span class="mv" id="paddle-handle-val">1.0×</span></div>
             </div>
           </div>
         </div>
@@ -1913,6 +1970,7 @@ function refreshPresetPanel() {
 // ANIMATION LOOP
 // ════════════════════════════════════════════════════════════════
 function animate(ts) {
+  if (renderState.active) return; // CHUNK 12 — render engine owns the loop during capture
   requestAnimationFrame(animate);
   if (state.isPlaying) {
     if (lastTs!==null) {
@@ -2118,7 +2176,8 @@ document.addEventListener('keydown',e=>{
 // ════════════════════════════════════════════════════════════════
 // CHUNK 2 — END EFFECTOR PROPS
 // ════════════════════════════════════════════════════════════════
-const propState = { type:'none', offsetX:0, offsetY:0.09, offsetZ:0, rotation:0 };
+const propState = { type:'none', offsetX:0, offsetY:0.09, offsetZ:0, rotation:0,
+  fanSpread:120, balloonInflation:1.0, paddleFaceSize:1.0, paddleHandleLen:1.0 };
 let propGroup   = null;
 let _propMeshes = [];
 let _propLight  = null;
@@ -2177,8 +2236,93 @@ function buildProp(type) {
     propGroup.add(_propLight);
   }
 
+  // CHUNK 10 — Fan
+  else if (type === 'fan') {
+    const nSlats = 8;
+    const half = propState.fanSpread / 2;
+    for (let i = 0; i < nSlats; i++) {
+      const angle = (-half + (propState.fanSpread / (nSlats - 1)) * i) * DEG_TO_RAD;
+      const slat = _pm(new THREE.BoxGeometry(0.022, 0.30, 0.004), 0x88aacc,
+        { roughness:0.65, metalness:0.05 });
+      slat.geometry.translate(0, 0.15, 0); // pivot at base
+      slat.rotation.y = angle;
+    }
+    // Pivot pin
+    _pm(new THREE.CylinderGeometry(0.012, 0.012, 0.04, 8), 0x888888,
+      { roughness:0.4, metalness:0.7 });
+    // Handle
+    const handle = _pm(new THREE.BoxGeometry(0.01, 0.18, 0.006), 0x6b4423,
+      { roughness:0.8, metalness:0.0 });
+    handle.position.y = -0.09;
+  }
+
+  // CHUNK 10 — Balloon
+  else if (type === 'balloon') {
+    const bodyGeo = new THREE.SphereGeometry(0.22, 32, 24);
+    const bodyMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color().setHSL(0.55, 0.9, 0.6),
+      roughness: 0.0, transmission: 0.82, transparent: true, opacity: 0.55,
+      clearcoat: 1.0, clearcoatRoughness: 0.05, ior: 1.45, side: THREE.DoubleSide,
+    });
+    const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+    bodyMesh.position.y = 0.22;
+    bodyMesh.scale.setScalar(propState.balloonInflation);
+    bodyMesh.castShadow = true;
+    propGroup.add(bodyMesh);
+    _propMeshes.push(bodyMesh);
+    propGroup.userData.balloonBody = bodyMesh;
+    // Knot
+    const knot = _pm(new THREE.SphereGeometry(0.014, 8, 6), 0x6688cc, { roughness:0.6 });
+    knot.position.y = 0;
+    // String
+    const str = _pm(new THREE.CylinderGeometry(0.002, 0.002, 0.22, 4), 0xddddcc, { roughness:0.9 });
+    str.position.y = -0.11;
+  }
+
+  // CHUNK 10 — Cricket Paddle
+  else if (type === 'paddle') {
+    // Face
+    const faceGeo = new THREE.BoxGeometry(0.14, 0.24, 0.016);
+    const faceMat = new THREE.MeshStandardMaterial({ color:0xd4a853, roughness:0.75, metalness:0.0 });
+    const face = new THREE.Mesh(faceGeo, faceMat);
+    face.position.y = 0.22;
+    face.scale.setScalar(propState.paddleFaceSize);
+    face.castShadow = true;
+    propGroup.add(face); _propMeshes.push(face);
+    // Edge strips
+    [[-0.075,0],[ 0.075,0]].forEach(([ex]) => {
+      const strip = _pm(new THREE.BoxGeometry(0.008, 0.24, 0.008), 0xb8923f,
+        { roughness:0.75, metalness:0.0 });
+      strip.position.set(ex, 0.22, 0);
+    });
+    // Handle
+    const handleGeo = new THREE.CylinderGeometry(0.016, 0.020, 0.20, 10);
+    const handleMat = new THREE.MeshStandardMaterial({ color:0x7a4f2a, roughness:0.85, metalness:0.0 });
+    const handleMesh = new THREE.Mesh(handleGeo, handleMat);
+    handleMesh.position.y = 0.05;
+    handleMesh.scale.y = propState.paddleHandleLen;
+    handleMesh.castShadow = true;
+    propGroup.add(handleMesh); _propMeshes.push(handleMesh);
+    // Grip rings
+    for (let i = 0; i < 4; i++) {
+      const ring = _pm(new THREE.TorusGeometry(0.021, 0.004, 6, 16), 0x222222,
+        { roughness:0.95, metalness:0.0 });
+      ring.position.y = -0.04 + i * 0.026;
+      ring.rotation.x = Math.PI / 2;
+    }
+    // Splice
+    const splice = _pm(new THREE.BoxGeometry(0.04, 0.028, 0.020), 0xc49a45,
+      { roughness:0.7, metalness:0.0 });
+    splice.position.y = 0.115;
+  }
+
   updatePropTransform();
   document.getElementById('prop-offset-controls').style.display = type==='none' ? 'none' : '';
+  // Show/hide chunk-10 specific rows
+  document.getElementById('fan-spread-row').style.display     = type==='fan'     ? '' : 'none';
+  document.getElementById('balloon-inflate-row').style.display= type==='balloon' ? '' : 'none';
+  document.getElementById('paddle-face-row').style.display    = type==='paddle'  ? '' : 'none';
+  document.getElementById('paddle-handle-row').style.display  = type==='paddle'  ? '' : 'none';
 }
 
 function updatePropTransform() {
@@ -2212,6 +2356,33 @@ document.getElementById('prop-rot').addEventListener('input', function(){
   propState.rotation=parseFloat(this.value);
   document.getElementById('prop-rot-val').textContent=propState.rotation.toFixed(0)+'°';
   updatePropTransform();
+});
+
+// CHUNK 10 — fan spread (rebuild geometry)
+document.getElementById('fan-spread').addEventListener('input', function(){
+  propState.fanSpread = parseFloat(this.value);
+  document.getElementById('fan-spread-val').textContent = propState.fanSpread + '°';
+  buildProp('fan');
+});
+
+// CHUNK 10 — balloon inflation (scale body directly, no rebuild)
+document.getElementById('balloon-inflate').addEventListener('input', function(){
+  propState.balloonInflation = parseFloat(this.value);
+  document.getElementById('balloon-inflate-val').textContent = propState.balloonInflation.toFixed(1) + '×';
+  if (propGroup && propGroup.userData.balloonBody)
+    propGroup.userData.balloonBody.scale.setScalar(propState.balloonInflation);
+});
+
+// CHUNK 10 — paddle face/handle (rebuild geometry)
+document.getElementById('paddle-face').addEventListener('input', function(){
+  propState.paddleFaceSize = parseFloat(this.value);
+  document.getElementById('paddle-face-val').textContent = propState.paddleFaceSize.toFixed(1) + '×';
+  buildProp('paddle');
+});
+document.getElementById('paddle-handle').addEventListener('input', function(){
+  propState.paddleHandleLen = parseFloat(this.value);
+  document.getElementById('paddle-handle-val').textContent = propState.paddleHandleLen.toFixed(1) + '×';
+  buildProp('paddle');
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -2436,16 +2607,192 @@ function buildEmotionsPanel() {
 }
 
 // ════════════════════════════════════════════════════════════════
+// CHUNK 11 — SCENE PRESETS
+// ════════════════════════════════════════════════════════════════
+function _kf(time, joints, label) {
+  return { id:'kf_'+Date.now()+'_'+Math.random().toString(36).slice(2),
+           time, joints:[...joints], label:label||'' };
+}
+
+function _setAnim(obj, mode, speed, amp, on=true) {
+  obj.anim = { on, mode, speed, amp,
+               phase:Math.random()*Math.PI*2,
+               _baseY:obj.y, _baseX:obj.x, _baseZ:obj.z, _baseRot:[0,0,0] };
+}
+
+function _addSO(type, x, z) {
+  addSceneObject(type);
+  const obj = sceneObjects[sceneObjects.length - 1];
+  obj.x = x; obj.z = z;
+  obj.anim._baseX = x; obj.anim._baseZ = z;
+  _applySceneObject(obj);
+  return obj;
+}
+
+function loadScenePreset(name) {
+  // 1. Reset joints
+  state.joints = [0,0,0,0,0,0,0];
+  updateRobot(); updateSliders();
+  // 2. Clear all scene objects
+  [...sceneObjects].forEach(o => { scene.remove(o.mesh); _disposeObj(o.mesh); });
+  sceneObjects.length = 0;
+  // 3. Clear keyframes
+  state.keyframes = []; state.selectedKeyframeId = null;
+  // 4. Reset time
+  state.currentTime = 0; updatePlayheadPos();
+  // 5. Run preset
+  SCENE_PRESETS[name]();
+  // 6. Redraw timeline and scene objects panel
+  renderTimeline();
+  refreshSceneObjectsPanel();
+  // 7. Rebuild light if mode changed
+  buildLaserLight();
+  // Update laser panel UI to match new laserState
+  setLaserMode(laserState.mode);
+  if (laserState.attachment !== 'robot') setLightAttachment(laserState.attachment);
+  // 8. Brief status message
+  const hdr = document.getElementById('scene-presets-hdr');
+  const orig = hdr.textContent;
+  hdr.textContent = 'Loaded: ' + name.replace(/([A-Z])/g,' $1').trim();
+  setTimeout(() => { hdr.textContent = orig; }, 2000);
+}
+
+const SCENE_PRESETS = {
+  orbTracker() {
+    laserState.mode = 'none';
+    state.duration = 10;
+    document.getElementById('duration-input').value = 10;
+
+    const bobSpeeds = [0.45,0.55,0.50,0.60,0.48];
+    [[-1.2,-0.4],[-0.6,-0.7],[0,-0.9],[0.6,-0.7],[1.2,-0.4]].forEach(([x,z],i) => {
+      const obj = _addSO('crystal', x, z);
+      obj.scale = 0.9; _applySceneObject(obj);
+      _setAnim(obj, 'bob', bobSpeeds[i], 0.07);
+    });
+
+    const j1s = [-52,-26,0,26,52];
+    [0,2.5,5,7.5,10].forEach((t,i) =>
+      state.keyframes.push(_kf(t, [j1s[i],-25,-15,0,0,0,0])));
+  },
+
+  mirrorGallery() {
+    laserState.mode       = 'laser';
+    laserState.attachment = 'robot';
+    laserState.hue        = 195;
+    laserState.intensity  = 88;
+    laserState.length     = 2.5;
+    laserState.flicker    = 0.08;
+    // sync slider UI
+    ['hue','int','len','flicker'].forEach(id => {
+      const el = document.getElementById('laser-'+id);
+      if (el) el.value = ({hue:195,int:88,len:2.5,flicker:0.08})[id] ??
+                          ({hue:'hue',int:'intensity',len:'length',flicker:'flicker'})[id];
+    });
+    document.getElementById('laser-hue').value     = 195;
+    document.getElementById('laser-int').value     = 88;
+    document.getElementById('laser-len').value     = 2.5;
+    document.getElementById('laser-flicker').value = 0.08;
+
+    state.duration = 8;
+    document.getElementById('duration-input').value = 8;
+
+    const rotations = [45,0,-45];
+    [[-1.0,-0.5],[0.0,-1.0],[1.0,-0.5]].forEach(([x,z],i) => {
+      const obj = _addSO('mirror', x, z);
+      obj.scale = 1.1; _applySceneObject(obj);
+      obj.mesh.rotation.y = rotations[i] * DEG_TO_RAD;
+      obj.mesh.rotation.x = 5 * DEG_TO_RAD;
+    });
+
+    [[-42,-18,-8],[- 42,-18,-8],[0,-18,-8],[42,-18,-8],[42,-18,-8]].forEach((j,i) => {
+      const joints = [...j, 0,0,0,0];
+      state.keyframes.push(_kf([0,2,4,6,8][i], joints));
+    });
+  },
+
+  crystalRave() {
+    laserState.mode        = 'projector';
+    laserState.attachment  = 'free';
+    laserState.freePos     = [0, 3.2, 0.8];
+    laserState.freePitch   = -68;
+    laserState.freeYaw     = 0;
+    laserState.projAngle   = 32;
+    laserState.projPenumbra= 0.6;
+    laserState.hue         = 275;
+    laserState.intensity   = 80;
+    laserState.strobe      = true;
+    laserState.strobeBPM   = 128;
+    document.getElementById('laser-hue').value     = 275;
+    document.getElementById('laser-int').value     = 80;
+    document.getElementById('proj-angle').value    = 32;
+    document.getElementById('proj-pen').value      = 0.6;
+    document.getElementById('proj-bpm').value      = 128;
+    const strobeBtn = document.getElementById('proj-strobe-btn');
+    strobeBtn.textContent = 'ON'; strobeBtn.classList.add('active');
+    _syncFreeSliders();
+
+    state.duration = 4;
+    document.getElementById('duration-input').value = 4;
+
+    [[-0.55,-0.45],[0.5,-0.5],[-0.3,-0.85],[0.35,-0.75]].forEach(([x,z],i) => {
+      const obj = _addSO('crystal', x, z);
+      _setAnim(obj, 'tumble', 0.28+i*0.04, 1.0);
+    });
+    [[-0.25,-1.0],[0.35,-1.05]].forEach(([x,z]) => _addSO('smoke', x, z));
+
+    [[0,[-28,-20,-12,0,0,0,0]],[1,[0,-20,-12,0,0,0,90]],
+     [2,[28,-20,-12,0,0,0,180]],[3,[0,-20,-12,0,0,0,270]],
+     [4,[-28,-20,-12,0,0,0,360]]].forEach(([t,j]) => state.keyframes.push(_kf(t,j)));
+  },
+
+  spotlightSolo() {
+    laserState.mode       = 'spot';
+    laserState.attachment = 'robot';
+    laserState.hue        = 42;
+    laserState.intensity  = 95;
+    laserState.angle      = 14;
+    laserState.penumbra   = 0.18;
+    document.getElementById('laser-hue').value     = 42;
+    document.getElementById('laser-int').value     = 95;
+    document.getElementById('spot-angle').value    = 14;
+    document.getElementById('spot-pen').value      = 0.18;
+
+    state.duration = 6;
+    document.getElementById('duration-input').value = 6;
+
+    const floor = _addSO('floor', 0, -0.6);
+    floor.scale = 2.2; _applySceneObject(floor);
+    _addSO('glass', 0.6, -0.5);
+
+    [[0,[0,-22,-10,0,-55,0,0]],[2,[-20,-22,-10,0,0,0,0]],
+     [4,[20,-22,-10,0,55,0,0]], [6,[0,-22,-10,0,0,0,0]]].forEach(([t,j]) =>
+      state.keyframes.push(_kf(t,j)));
+  },
+};
+
+// CHUNK 11 — preset button listeners
+document.querySelectorAll('.scene-preset-btn').forEach(btn =>
+  btn.addEventListener('click', () => loadScenePreset(btn.dataset.preset)));
+
+// ════════════════════════════════════════════════════════════════
 // CHUNK 5 — LASER / LIGHT ATTACHED TO ROBOT
 // ════════════════════════════════════════════════════════════════
 const laserState = {
-  mode:     'none',  // 'none' | 'laser' | 'spot'
-  hue:      0,
-  intensity:70,
-  length:   0.8,
-  flicker:  0,
-  angle:    18,
-  penumbra: 0.3,
+  mode:        'none',  // 'none' | 'laser' | 'spot' | 'projector'
+  attachment:  'robot', // 'robot' | 'free'
+  hue:         0,
+  intensity:   70,
+  length:      0.8,
+  flicker:     0,
+  angle:       18,
+  penumbra:    0.3,
+  freePos:     [0, 2.0, 0],
+  freePitch:   -60,
+  freeYaw:     0,
+  projAngle:   25,
+  projPenumbra:0.5,
+  strobe:      false,
+  strobeBPM:   120,
 };
 
 let laserGroup      = null;  // parented to jointGroups[5]
@@ -2480,7 +2827,21 @@ function buildLaserLight() {
   if (!laserGroup) {
     laserGroup = new THREE.Group();
     laserGroup.position.y = 0.075; // J6 tip offset
-    jointGroups[5].add(laserGroup);
+  }
+  // CHUNK 9 — attach to correct parent on first creation / re-creation
+  if (laserState.attachment === 'robot') {
+    if (laserGroup.parent !== jointGroups[5]) {
+      if (laserGroup.parent) laserGroup.parent.remove(laserGroup);
+      laserGroup.position.set(0, 0.075, 0);
+      laserGroup.rotation.set(0, 0, 0);
+      jointGroups[5].add(laserGroup);
+    }
+  } else {
+    if (laserGroup.parent !== scene) {
+      if (laserGroup.parent) laserGroup.parent.remove(laserGroup);
+      scene.add(laserGroup);
+    }
+    _syncLightTransform();
   }
   _clearLaser();
 
@@ -2489,21 +2850,21 @@ function buildLaserLight() {
 
   if (laserState.mode === 'laser') {
     const geo = new THREE.CylinderGeometry(0.004, 0.002, laserState.length, 8);
-    geo.translate(0, laserState.length / 2, 0); // base at origin, tip extends in +Y
+    geo.translate(0, laserState.length / 2, 0);
     laserBeamMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
       color: col, transparent: true, opacity: norm,
     }));
     laserGroup.add(laserBeamMesh);
 
-  } else if (laserState.mode === 'spot') {
+  } else if (laserState.mode === 'spot' || laserState.mode === 'projector') {
+    const isProj   = laserState.mode === 'projector';
     const lightCol = new THREE.Color().setHSL(laserState.hue / 360, 1.0, 0.75);
-    laserSpotLight           = new THREE.SpotLight(lightCol, norm * 4);
-    laserSpotLight.angle     = laserState.angle   * Math.PI / 180;
-    laserSpotLight.penumbra  = laserState.penumbra;
+    laserSpotLight           = new THREE.SpotLight(lightCol, norm * (isProj ? 8 : 4));
+    laserSpotLight.angle     = (isProj ? laserState.projAngle    : laserState.angle)    * DEG_TO_RAD;
+    laserSpotLight.penumbra  =  isProj ? laserState.projPenumbra : laserState.penumbra;
     laserSpotLight.castShadow = true;
-    laserSpotLight.shadow.mapSize.set(512, 512);
+    laserSpotLight.shadow.mapSize.set(isProj ? 1024 : 512, isProj ? 1024 : 512);
     laserSpotLight.position.set(0, 0, 0);
-    // Aim target in +Y (local forward of J6)
     laserSpotLight.target.position.set(0, 1, 0);
     laserGroup.add(laserSpotLight);
     laserGroup.add(laserSpotLight.target);
@@ -2517,20 +2878,92 @@ function setLaserMode(mode) {
   document.querySelectorAll('.laser-mode-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.lmode === mode));
   const ctrl = document.getElementById('laser-controls');
-  if (mode === 'none') { ctrl.style.display = 'none'; _clearLaser(); return; }
+  const attachRow = document.getElementById('light-attach-row');
+  const freeCtrl  = document.getElementById('light-free-controls');
+  if (mode === 'none') {
+    ctrl.style.display = 'none';
+    attachRow.style.display = 'none';
+    freeCtrl.style.display = 'none';
+    _clearLaser();
+    return;
+  }
   ctrl.style.display = '';
-  document.getElementById('laser-len-row').style.display     = mode === 'laser' ? '' : 'none';
-  document.getElementById('laser-flicker-row').style.display = mode === 'laser' ? '' : 'none';
-  document.getElementById('spot-angle-row').style.display    = mode === 'spot'  ? '' : 'none';
-  document.getElementById('spot-pen-row').style.display      = mode === 'spot'  ? '' : 'none';
+  attachRow.style.display = '';
+  freeCtrl.style.display = (laserState.attachment === 'free') ? '' : 'none';
+  document.getElementById('laser-len-row').style.display      = mode === 'laser'     ? '' : 'none';
+  document.getElementById('laser-flicker-row').style.display  = mode === 'laser'     ? '' : 'none';
+  document.getElementById('spot-angle-row').style.display     = mode === 'spot'      ? '' : 'none';
+  document.getElementById('spot-pen-row').style.display       = mode === 'spot'      ? '' : 'none';
+  document.getElementById('proj-angle-row').style.display     = mode === 'projector' ? '' : 'none';
+  document.getElementById('proj-pen-row').style.display       = mode === 'projector' ? '' : 'none';
+  document.getElementById('proj-strobe-row').style.display    = mode === 'projector' ? '' : 'none';
   buildLaserLight();
 }
 
+// CHUNK 9 — free-float transform helpers
+function _syncLightTransform() {
+  if (!laserGroup) return;
+  laserGroup.position.set(...laserState.freePos);
+  laserGroup.rotation.set(laserState.freePitch * DEG_TO_RAD, laserState.freeYaw * DEG_TO_RAD, 0, 'YXZ');
+}
+
+function _syncFreeSliders() {
+  document.getElementById('light-fx').value = laserState.freePos[0];
+  document.getElementById('light-fy').value = laserState.freePos[1];
+  document.getElementById('light-fz').value = laserState.freePos[2];
+  document.getElementById('light-fpitch').value = laserState.freePitch;
+  document.getElementById('light-fyaw').value   = laserState.freeYaw;
+  document.getElementById('light-fx-val').textContent    = laserState.freePos[0].toFixed(2);
+  document.getElementById('light-fy-val').textContent    = laserState.freePos[1].toFixed(2);
+  document.getElementById('light-fz-val').textContent    = laserState.freePos[2].toFixed(2);
+  document.getElementById('light-fpitch-val').textContent = laserState.freePitch + '°';
+  document.getElementById('light-fyaw-val').textContent   = laserState.freeYaw   + '°';
+}
+
+function setLightAttachment(att) {
+  laserState.attachment = att;
+  document.querySelectorAll('.light-attach-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.att === att));
+  const freeCtrl = document.getElementById('light-free-controls');
+  if (att === 'robot') {
+    if (laserGroup && laserGroup.parent !== jointGroups[5]) {
+      laserGroup.parent.remove(laserGroup);
+      laserGroup.position.set(0, 0.075, 0);
+      laserGroup.rotation.set(0, 0, 0);
+      jointGroups[5].add(laserGroup);
+    }
+    freeCtrl.style.display = 'none';
+  } else {
+    if (laserGroup) {
+      const wp = new THREE.Vector3();
+      laserGroup.getWorldPosition(wp);
+      laserState.freePos = [wp.x, Math.max(0.1, wp.y), wp.z];
+      if (laserGroup.parent !== scene) {
+        laserGroup.parent.remove(laserGroup);
+        scene.add(laserGroup);
+      }
+      _syncFreeSliders();
+      _syncLightTransform();
+    }
+    freeCtrl.style.display = '';
+  }
+}
+
 function updateLaserFrame(ts) {
-  if (laserState.mode !== 'laser' || !laserBeamMesh || laserState.flicker === 0) return;
-  const base  = laserState.intensity / 100;
-  const noise = (Math.sin(ts * 0.023) * 0.5 + Math.sin(ts * 0.059) * 0.5) * laserState.flicker * 0.45;
-  laserBeamMesh.material.opacity = Math.max(0, Math.min(1, base + noise));
+  // Laser flicker
+  if (laserState.mode === 'laser' && laserBeamMesh && laserState.flicker > 0) {
+    const base  = laserState.intensity / 100;
+    const noise = (Math.sin(ts * 0.023) * 0.5 + Math.sin(ts * 0.059) * 0.5) * laserState.flicker * 0.45;
+    laserBeamMesh.material.opacity = Math.max(0, Math.min(1, base + noise));
+  }
+  // CHUNK 9 — projector strobe
+  if (laserState.mode === 'projector' && laserSpotLight && laserState.strobe) {
+    const period = 60 / laserState.strobeBPM;
+    const phase  = (ts * 0.001) % period;
+    const on     = phase < period * 0.5;
+    laserSpotLight.intensity = on ? (laserState.intensity / 100) * 8 : 0;
+    if (laserSpotHelper) laserSpotHelper.update();
+  }
 }
 
 // CHUNK 5 — laser event listeners
@@ -2549,7 +2982,11 @@ document.getElementById('laser-int').addEventListener('input', function() {
   document.getElementById('laser-int-val').textContent = laserState.intensity;
   const norm = laserState.intensity / 100;
   if (laserBeamMesh) laserBeamMesh.material.opacity = norm;
-  if (laserSpotLight) { laserSpotLight.intensity = norm * 4; if(laserSpotHelper)laserSpotHelper.update(); }
+  if (laserSpotLight && !laserState.strobe) {
+    const mult = laserState.mode === 'projector' ? 8 : 4;
+    laserSpotLight.intensity = norm * mult;
+    if (laserSpotHelper) laserSpotHelper.update();
+  }
 });
 document.getElementById('laser-len').addEventListener('input', function() {
   laserState.length = parseFloat(this.value);
@@ -2563,12 +3000,67 @@ document.getElementById('laser-flicker').addEventListener('input', function() {
 document.getElementById('spot-angle').addEventListener('input', function() {
   laserState.angle = parseFloat(this.value);
   document.getElementById('spot-angle-val').textContent = laserState.angle + '°';
-  if (laserSpotLight) { laserSpotLight.angle = laserState.angle * Math.PI/180; if(laserSpotHelper)laserSpotHelper.update(); }
+  if (laserSpotLight) { laserSpotLight.angle = laserState.angle * DEG_TO_RAD; if(laserSpotHelper)laserSpotHelper.update(); }
 });
 document.getElementById('spot-pen').addEventListener('input', function() {
   laserState.penumbra = parseFloat(this.value);
   document.getElementById('spot-pen-val').textContent = laserState.penumbra.toFixed(2);
   if (laserSpotLight) { laserSpotLight.penumbra = laserState.penumbra; if(laserSpotHelper)laserSpotHelper.update(); }
+});
+
+// CHUNK 9 — attachment toggle
+document.querySelectorAll('.light-attach-btn[data-att]').forEach(btn =>
+  btn.addEventListener('click', () => setLightAttachment(btn.dataset.att)));
+
+// CHUNK 9 — free-float position sliders
+document.getElementById('light-fx').addEventListener('input', function() {
+  laserState.freePos[0] = parseFloat(this.value);
+  document.getElementById('light-fx-val').textContent = laserState.freePos[0].toFixed(2);
+  _syncLightTransform();
+});
+document.getElementById('light-fy').addEventListener('input', function() {
+  laserState.freePos[1] = parseFloat(this.value);
+  document.getElementById('light-fy-val').textContent = laserState.freePos[1].toFixed(2);
+  _syncLightTransform();
+});
+document.getElementById('light-fz').addEventListener('input', function() {
+  laserState.freePos[2] = parseFloat(this.value);
+  document.getElementById('light-fz-val').textContent = laserState.freePos[2].toFixed(2);
+  _syncLightTransform();
+});
+document.getElementById('light-fpitch').addEventListener('input', function() {
+  laserState.freePitch = parseFloat(this.value);
+  document.getElementById('light-fpitch-val').textContent = laserState.freePitch + '°';
+  _syncLightTransform();
+});
+document.getElementById('light-fyaw').addEventListener('input', function() {
+  laserState.freeYaw = parseFloat(this.value);
+  document.getElementById('light-fyaw-val').textContent = laserState.freeYaw + '°';
+  _syncLightTransform();
+});
+
+// CHUNK 9 — projector controls
+document.getElementById('proj-angle').addEventListener('input', function() {
+  laserState.projAngle = parseFloat(this.value);
+  document.getElementById('proj-angle-val').textContent = laserState.projAngle + '°';
+  if (laserSpotLight) { laserSpotLight.angle = laserState.projAngle * DEG_TO_RAD; if(laserSpotHelper)laserSpotHelper.update(); }
+});
+document.getElementById('proj-pen').addEventListener('input', function() {
+  laserState.projPenumbra = parseFloat(this.value);
+  document.getElementById('proj-pen-val').textContent = laserState.projPenumbra.toFixed(2);
+  if (laserSpotLight) { laserSpotLight.penumbra = laserState.projPenumbra; if(laserSpotHelper)laserSpotHelper.update(); }
+});
+document.getElementById('proj-strobe-btn').addEventListener('click', function() {
+  laserState.strobe = !laserState.strobe;
+  this.textContent = laserState.strobe ? 'ON' : 'OFF';
+  this.classList.toggle('active', laserState.strobe);
+  if (!laserState.strobe && laserSpotLight) {
+    laserSpotLight.intensity = (laserState.intensity / 100) * 8;
+  }
+});
+document.getElementById('proj-bpm').addEventListener('input', function() {
+  laserState.strobeBPM = parseFloat(this.value);
+  document.getElementById('proj-bpm-val').textContent = laserState.strobeBPM;
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -3431,7 +3923,288 @@ syncScreenPanel();
   camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false);
 }
 
+// ════════════════════════════════════════════════════════════════
+// CHUNK 12 — RENDER MODE (Frame Capture + Export)
+// ════════════════════════════════════════════════════════════════
+const renderState = {
+  active:false, format:'webm', fps:24, resolution:'viewport',
+  includeGuides:false, currentFrame:0, totalFrames:0,
+  frames:[], mediaRecorder:null, chunks:[], _origSize:null, _cancelled:false,
+};
+
+function _loadScript(src, cb) {
+  if (document.querySelector(`script[src="${src}"]`)) { cb(); return; }
+  const s = document.createElement('script'); s.src = src; s.onload = cb; document.head.appendChild(s);
+}
+
+function updateRenderInfo() {
+  const frames = Math.ceil(state.duration * renderState.fps);
+  let sizeStr = '';
+  if (renderState.format === 'webm') sizeStr = '~' + (state.duration * 0.5).toFixed(1) + ' MB';
+  else if (renderState.format === 'gif') sizeStr = '~' + (frames * 0.2).toFixed(1) + ' MB';
+  else sizeStr = '~' + (frames * 0.1).toFixed(1) + ' MB';
+  document.getElementById('render-info').textContent =
+    `${frames} frames · ${state.duration.toFixed(1)}s · ${sizeStr}`;
+}
+
+function startRender() {
+  renderState.totalFrames = Math.ceil(state.duration * renderState.fps);
+  renderState.currentFrame = 0;
+  renderState._cancelled = false;
+  renderState.active = true;
+  renderState.chunks = [];
+  renderState.frames = [];
+
+  document.getElementById('render-setup').style.display = 'none';
+  document.getElementById('render-progress').style.display = '';
+
+  // Hide guides if not included
+  if (!renderState.includeGuides) {
+    if (typeof _soSelRing !== 'undefined' && _soSelRing) _soSelRing.visible = false;
+    if (laserSpotHelper) laserSpotHelper.visible = false;
+  }
+
+  // Store original size
+  renderState._origSize = { w: renderer.domElement.width, h: renderer.domElement.height };
+
+  // Resize if needed
+  if (renderState.resolution === '720p')  renderer.setSize(1280, 720, false);
+  else if (renderState.resolution === '1080p') renderer.setSize(1920, 1080, false);
+
+  state.isPlaying = false;
+  state.currentTime = 0;
+
+  if (renderState.format === 'webm') {
+    const canvas = document.getElementById('canvas');
+    const stream = canvas.captureStream(renderState.fps);
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+      ? 'video/webm;codecs=vp9' : 'video/webm';
+    renderState.mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
+    renderState.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) renderState.chunks.push(e.data); };
+    renderState.mediaRecorder.onstop = () => {
+      if (!renderState._cancelled) {
+        const blob = new Blob(renderState.chunks, { type: mimeType });
+        _triggerDownload(blob, 'robot-previz.webm');
+      }
+      _postRenderCleanup();
+    };
+    renderState.mediaRecorder.start();
+  }
+
+  requestAnimationFrame(_renderNextFrame);
+}
+
+function _renderNextFrame() {
+  if (!renderState.active || renderState._cancelled) { _cleanupRender(); return; }
+  if (renderState.currentFrame >= renderState.totalFrames) { _finalizeRender(); return; }
+
+  const t = renderState.currentFrame / renderState.fps;
+  state.currentTime = t;
+  _applyTimeToState(t);
+
+  updateRobot();
+  if (typeof updateRobot2 === 'function') updateRobot2();
+  if (typeof updateSceneObjectAnimations === 'function') updateSceneObjectAnimations(t * 1000);
+  updateLaserFrame(t * 1000);
+  if (laserSpotHelper) laserSpotHelper.update();
+  if (typeof updateLaserInteraction === 'function') updateLaserInteraction();
+  if (typeof update3DObjects === 'function') update3DObjects();
+  if (state.screen && state.screen.enabled && typeof renderScreenCanvas === 'function') {
+    renderScreenCanvas();
+    if (typeof screenTexture !== 'undefined' && screenTexture) screenTexture.needsUpdate = true;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+
+  renderState.currentFrame++;
+  const pct = (renderState.currentFrame / renderState.totalFrames) * 100;
+  document.getElementById('render-prog-bar').style.width = pct + '%';
+  document.getElementById('render-prog-label').textContent =
+    `Rendering frame ${renderState.currentFrame} / ${renderState.totalFrames}`;
+
+  if (renderState.format === 'gif' || renderState.format === 'png') {
+    document.getElementById('canvas').toBlob(blob => {
+      renderState.frames.push(blob);
+      requestAnimationFrame(_renderNextFrame);
+    }, 'image/png');
+  } else {
+    requestAnimationFrame(_renderNextFrame);
+  }
+}
+
+function _finalizeRender() {
+  if (renderState.format === 'webm') {
+    renderState.mediaRecorder.stop(); // onstop handles download + cleanup
+    return;
+  }
+  if (renderState.format === 'png') { _zipAndDownloadPNGs(); return; }
+  if (renderState.format === 'gif') { _encodeGIF(); return; }
+  _postRenderCleanup();
+}
+
+function _cleanupRender() { _postRenderCleanup(); }
+
+function _zipAndDownloadPNGs() {
+  document.getElementById('render-prog-label').textContent = 'Zipping frames…';
+  _loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js', () => {
+    const zip = new JSZip();
+    renderState.frames.forEach((blob, i) => {
+      zip.file(`frame_${String(i+1).padStart(4,'0')}.png`, blob);
+    });
+    zip.generateAsync({ type:'blob' }).then(blob => {
+      _triggerDownload(blob, 'robot-previz-frames.zip');
+      _postRenderCleanup();
+    });
+  });
+}
+
+function _encodeGIF() {
+  document.getElementById('render-prog-label').textContent = 'Encoding GIF…';
+  _loadScript('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js', () => {
+    const w = renderer.domElement.width;
+    const h = renderer.domElement.height;
+    const gif = new GIF({ workers:2, quality:10, width:w, height:h,
+      workerScript:'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js' });
+    const delay = Math.round(1000 / renderState.fps);
+    let loaded = 0;
+    renderState.frames.forEach(blob => {
+      createImageBitmap(blob).then(bmp => {
+        gif.addFrame(bmp, { delay });
+        loaded++;
+        if (loaded === renderState.frames.length) {
+          gif.on('finished', blob => { _triggerDownload(blob,'robot-previz.gif'); _postRenderCleanup(); });
+          gif.render();
+        }
+      });
+    });
+  });
+}
+
+function _triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function _postRenderCleanup() {
+  renderState.active = false;
+  if (renderState._origSize) {
+    renderer.setSize(renderState._origSize.w, renderState._origSize.h, false);
+    camera.aspect = renderState._origSize.w / renderState._origSize.h;
+    camera.updateProjectionMatrix();
+  }
+  if (typeof _soSelRing !== 'undefined' && _soSelRing) _soSelRing.visible = true;
+  if (laserSpotHelper) laserSpotHelper.visible = true;
+  state.currentTime = 0; updatePlayheadPos();
+  document.getElementById('render-modal').style.display = 'none';
+  document.getElementById('render-setup').style.display = '';
+  document.getElementById('render-progress').style.display = 'none';
+  requestAnimationFrame(animate);
+}
+
+function cancelRender() {
+  renderState._cancelled = true;
+  renderState.active = false;
+  if (renderState.mediaRecorder && renderState.mediaRecorder.state !== 'inactive')
+    renderState.mediaRecorder.stop();
+  else _postRenderCleanup();
+}
+
+// CHUNK 12 — render modal event listeners
+document.getElementById('btn-render').addEventListener('click', () => {
+  updateRenderInfo();
+  document.getElementById('render-modal').style.display = 'flex';
+});
+document.getElementById('btn-render-cancel-setup').addEventListener('click', () => {
+  document.getElementById('render-modal').style.display = 'none';
+});
+document.getElementById('btn-render-start').addEventListener('click', startRender);
+document.getElementById('btn-render-cancel').addEventListener('click', cancelRender);
+
+document.querySelectorAll('.render-opt-btn[data-rfmt]').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.render-opt-btn[data-rfmt]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderState.format = btn.dataset.rfmt;
+    updateRenderInfo();
+  }));
+document.querySelectorAll('.render-opt-btn[data-rfps]').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.render-opt-btn[data-rfps]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderState.fps = parseInt(btn.dataset.rfps);
+    updateRenderInfo();
+  }));
+document.querySelectorAll('.render-opt-btn[data-rres]').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.render-opt-btn[data-rres]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderState.resolution = btn.dataset.rres;
+    updateRenderInfo();
+  }));
+document.getElementById('render-guides-chk').addEventListener('change', function() {
+  renderState.includeGuides = this.checked;
+});
+
 animate(0);
 </script>
+
+<!-- CHUNK 12 — RENDER MODAL -->
+<div id="render-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1000">
+  <div style="max-width:440px;width:100%;background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:24px">
+
+    <!-- Setup section -->
+    <div id="render-setup">
+      <h2 style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);margin-bottom:16px">RENDER TIMELINE</h2>
+
+      <div class="render-section-label">FORMAT</div>
+      <div class="render-row">
+        <button class="render-opt-btn active" data-rfmt="webm">WEB VIDEO</button>
+        <button class="render-opt-btn" data-rfmt="gif">GIF</button>
+        <button class="render-opt-btn" data-rfmt="png">PNG SEQ</button>
+      </div>
+
+      <div class="render-section-label">FPS</div>
+      <div class="render-row">
+        <button class="render-opt-btn" data-rfps="12">12</button>
+        <button class="render-opt-btn active" data-rfps="24">24</button>
+        <button class="render-opt-btn" data-rfps="30">30</button>
+      </div>
+
+      <div class="render-section-label">RESOLUTION</div>
+      <div class="render-row">
+        <button class="render-opt-btn active" data-rres="viewport">VIEWPORT</button>
+        <button class="render-opt-btn" data-rres="720p">720p</button>
+        <button class="render-opt-btn" data-rres="1080p">1080p</button>
+      </div>
+
+      <div class="render-row" style="align-items:center;gap:8px;margin-bottom:10px">
+        <input type="checkbox" id="render-guides-chk" style="accent-color:var(--accent)">
+        <label for="render-guides-chk" style="font-size:10px;font-family:var(--mono);color:var(--text-dim);cursor:pointer">Include helpers &amp; selection ring</label>
+      </div>
+
+      <div class="render-info-line" id="render-info"></div>
+
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn" id="btn-render-cancel-setup" style="flex:1">CANCEL</button>
+        <button class="btn btn-amber" id="btn-render-start" style="flex:1">START RENDER</button>
+      </div>
+    </div>
+
+    <!-- Progress section -->
+    <div id="render-progress" style="display:none">
+      <h2 style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);margin-bottom:16px">RENDERING…</h2>
+      <div id="render-prog-label" style="font-size:10px;font-family:var(--mono);color:var(--text-dim);margin-bottom:8px">Preparing…</div>
+      <div style="border:1px solid var(--border);border-radius:3px;height:6px;background:var(--bg);overflow:hidden">
+        <div id="render-prog-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.1s"></div>
+      </div>
+      <div style="margin-top:14px;text-align:center">
+        <button class="btn" id="btn-render-cancel">CANCEL</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>
