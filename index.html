@@ -696,6 +696,52 @@
   </div>
 </div>
 
+<!-- CHUNK 12 — RENDER MODAL -->
+<div id="render-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1000">
+  <div style="max-width:440px;width:100%;background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:24px">
+    <div id="render-setup">
+      <h2 style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);margin-bottom:16px">RENDER TIMELINE</h2>
+      <div class="render-section-label">FORMAT</div>
+      <div class="render-row">
+        <button class="render-opt-btn active" data-rfmt="webm">WEB VIDEO</button>
+        <button class="render-opt-btn" data-rfmt="gif">GIF</button>
+        <button class="render-opt-btn" data-rfmt="png">PNG SEQ</button>
+      </div>
+      <div class="render-section-label">FPS</div>
+      <div class="render-row">
+        <button class="render-opt-btn" data-rfps="12">12</button>
+        <button class="render-opt-btn active" data-rfps="24">24</button>
+        <button class="render-opt-btn" data-rfps="30">30</button>
+      </div>
+      <div class="render-section-label">RESOLUTION</div>
+      <div class="render-row">
+        <button class="render-opt-btn active" data-rres="viewport">VIEWPORT</button>
+        <button class="render-opt-btn" data-rres="720p">720p</button>
+        <button class="render-opt-btn" data-rres="1080p">1080p</button>
+      </div>
+      <div class="render-row" style="align-items:center;gap:8px;margin-bottom:10px">
+        <input type="checkbox" id="render-guides-chk" style="accent-color:var(--accent)">
+        <label for="render-guides-chk" style="font-size:10px;font-family:var(--mono);color:var(--text-dim);cursor:pointer">Include helpers &amp; selection ring</label>
+      </div>
+      <div class="render-info-line" id="render-info"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn" id="btn-render-cancel-setup" style="flex:1">CANCEL</button>
+        <button class="btn btn-amber" id="btn-render-start" style="flex:1">START RENDER</button>
+      </div>
+    </div>
+    <div id="render-progress" style="display:none">
+      <h2 style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);margin-bottom:16px">RENDERING…</h2>
+      <div id="render-prog-label" style="font-size:10px;font-family:var(--mono);color:var(--text-dim);margin-bottom:8px">Preparing…</div>
+      <div style="border:1px solid var(--border);border-radius:3px;height:6px;background:var(--bg);overflow:hidden">
+        <div id="render-prog-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.1s"></div>
+      </div>
+      <div style="margin-top:14px;text-align:center">
+        <button class="btn" id="btn-render-cancel">CANCEL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
@@ -4149,62 +4195,5 @@ document.getElementById('render-guides-chk').addEventListener('change', function
 
 animate(0);
 </script>
-
-<!-- CHUNK 12 — RENDER MODAL -->
-<div id="render-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1000">
-  <div style="max-width:440px;width:100%;background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:24px">
-
-    <!-- Setup section -->
-    <div id="render-setup">
-      <h2 style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);margin-bottom:16px">RENDER TIMELINE</h2>
-
-      <div class="render-section-label">FORMAT</div>
-      <div class="render-row">
-        <button class="render-opt-btn active" data-rfmt="webm">WEB VIDEO</button>
-        <button class="render-opt-btn" data-rfmt="gif">GIF</button>
-        <button class="render-opt-btn" data-rfmt="png">PNG SEQ</button>
-      </div>
-
-      <div class="render-section-label">FPS</div>
-      <div class="render-row">
-        <button class="render-opt-btn" data-rfps="12">12</button>
-        <button class="render-opt-btn active" data-rfps="24">24</button>
-        <button class="render-opt-btn" data-rfps="30">30</button>
-      </div>
-
-      <div class="render-section-label">RESOLUTION</div>
-      <div class="render-row">
-        <button class="render-opt-btn active" data-rres="viewport">VIEWPORT</button>
-        <button class="render-opt-btn" data-rres="720p">720p</button>
-        <button class="render-opt-btn" data-rres="1080p">1080p</button>
-      </div>
-
-      <div class="render-row" style="align-items:center;gap:8px;margin-bottom:10px">
-        <input type="checkbox" id="render-guides-chk" style="accent-color:var(--accent)">
-        <label for="render-guides-chk" style="font-size:10px;font-family:var(--mono);color:var(--text-dim);cursor:pointer">Include helpers &amp; selection ring</label>
-      </div>
-
-      <div class="render-info-line" id="render-info"></div>
-
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="btn" id="btn-render-cancel-setup" style="flex:1">CANCEL</button>
-        <button class="btn btn-amber" id="btn-render-start" style="flex:1">START RENDER</button>
-      </div>
-    </div>
-
-    <!-- Progress section -->
-    <div id="render-progress" style="display:none">
-      <h2 style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);margin-bottom:16px">RENDERING…</h2>
-      <div id="render-prog-label" style="font-size:10px;font-family:var(--mono);color:var(--text-dim);margin-bottom:8px">Preparing…</div>
-      <div style="border:1px solid var(--border);border-radius:3px;height:6px;background:var(--bg);overflow:hidden">
-        <div id="render-prog-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.1s"></div>
-      </div>
-      <div style="margin-top:14px;text-align:center">
-        <button class="btn" id="btn-render-cancel">CANCEL</button>
-      </div>
-    </div>
-
-  </div>
-</div>
 </body>
 </html>
