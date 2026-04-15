@@ -697,7 +697,7 @@
 </div>
 
 <!-- CHUNK 12 — RENDER MODAL -->
-<div id="render-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1000">
+<div id="render-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1000">
   <div style="max-width:440px;width:100%;background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:24px">
     <div id="render-setup">
       <h2 style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);margin-bottom:16px">RENDER TIMELINE</h2>
@@ -2305,9 +2305,15 @@ function buildProp(type) {
   // CHUNK 10 — Balloon
   else if (type === 'balloon') {
     const bodyGeo = new THREE.SphereGeometry(0.22, 32, 24);
+    // transmission requires a WebGL2 extension not available in all Safari versions
+    const _hasTransmission = renderer.capabilities.isWebGL2 &&
+      !!renderer.extensions.get('EXT_color_buffer_float');
     const bodyMat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color().setHSL(0.55, 0.9, 0.6),
-      roughness: 0.0, transmission: 0.82, transparent: true, opacity: 0.55,
+      roughness: 0.0,
+      transmission: _hasTransmission ? 0.82 : 0,
+      transparent: true,
+      opacity: _hasTransmission ? 0.55 : 0.72,
       clearcoat: 1.0, clearcoatRoughness: 0.05, ior: 1.45, side: THREE.DoubleSide,
     });
     const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
@@ -4066,14 +4072,21 @@ function startRender() {
   if (renderState.format === 'webm') {
     const canvas = document.getElementById('canvas');
     const stream = canvas.captureStream(renderState.fps);
+    // Safari supports MP4/H.264 only; Chrome supports WebM/VP9
     const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-      ? 'video/webm;codecs=vp9' : 'video/webm';
+      ? 'video/webm;codecs=vp9'
+      : MediaRecorder.isTypeSupported('video/webm')
+      ? 'video/webm'
+      : MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')
+      ? 'video/mp4;codecs=avc1'
+      : 'video/mp4';
+    const ext = mimeType.startsWith('video/mp4') ? 'mp4' : 'webm';
     renderState.mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
     renderState.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) renderState.chunks.push(e.data); };
     renderState.mediaRecorder.onstop = () => {
       if (!renderState._cancelled) {
         const blob = new Blob(renderState.chunks, { type: mimeType });
-        _triggerDownload(blob, 'robot-previz.webm');
+        _triggerDownload(blob, `robot-previz.${ext}`);
       }
       _postRenderCleanup();
     };
@@ -4156,8 +4169,28 @@ function _encodeGIF() {
       workerScript:'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js' });
     const delay = Math.round(1000 / renderState.fps);
     let loaded = 0;
+    // Safari-compatible image decode fallback
+    function _blobToBitmap(blob) {
+      if (typeof createImageBitmap !== 'undefined') {
+        return createImageBitmap(blob).catch(() => _imgFallback(blob));
+      }
+      return _imgFallback(blob);
+    }
+    function _imgFallback(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
     renderState.frames.forEach(blob => {
-      createImageBitmap(blob).then(bmp => {
+      _blobToBitmap(blob).then(bmp => {
         gif.addFrame(bmp, { delay });
         loaded++;
         if (loaded === renderState.frames.length) {
