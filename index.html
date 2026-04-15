@@ -313,7 +313,7 @@
 
 <script>
 (function(){
-  const PW = 'offf2025';
+  const PW = 'robots2026';
   const KEY = 'vvx_pw_ok';
   const gate = document.getElementById('pw-gate');
   if(localStorage.getItem(KEY)==='1'){gate.style.display='none';return;}
@@ -4169,29 +4169,25 @@ function _encodeGIF() {
       workerScript:'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js' });
     const delay = Math.round(1000 / renderState.fps);
     let loaded = 0;
-    // Safari-compatible image decode fallback
-    function _blobToBitmap(blob) {
-      if (typeof createImageBitmap !== 'undefined') {
-        return createImageBitmap(blob).catch(() => _imgFallback(blob));
-      }
-      return _imgFallback(blob);
-    }
-    function _imgFallback(blob) {
+    // gif.js requires a canvas element — draw each blob into a temp canvas first
+    function _blobToCanvas(blob) {
       return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = reader.result;
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(url);
+          resolve(c);
         };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('frame decode failed')); };
+        img.src = url;
       });
     }
     renderState.frames.forEach(blob => {
-      _blobToBitmap(blob).then(bmp => {
-        gif.addFrame(bmp, { delay });
+      _blobToCanvas(blob).then(canvas => {
+        gif.addFrame(canvas, { delay, copy: true });
         loaded++;
         if (loaded === renderState.frames.length) {
           gif.on('finished', blob => { _triggerDownload(blob,'robot-previz.gif'); _postRenderCleanup(); });
